@@ -1,4 +1,3 @@
-import { resolve } from 'node:path';
 import { releaseEventLoop } from '../timing';
 import {
     ContinuationMetrics,
@@ -49,8 +48,8 @@ export function runWithProfiling<T>(
             // Here we need to release the event loop because even though promise
             // rejections happen in the next tick, the `fn` function might be
             // synchronous and throw instead of rejecting.
-            // That would me the "end" hook be emmited after we return the metrics
-            // below so the last tick wouldn't be counted.
+            // That would make the "end" hook be emmited after we return the metrics
+            // below so the last task wouldn't be counted.
             await releaseEventLoop();
 
             tracker.markFlowEnd();
