@@ -1,6 +1,6 @@
 import { ContinuationMetrics } from '../profiling/continuation-tracker';
 
-export type SerializedFlowMetrics = {
+export type FlowStats = {
     name: string;
     totalExecutionTime: number;
     totalEventLoopTime: number;
@@ -23,7 +23,7 @@ export class FlowMetrics {
         this.executions++;
     }
 
-    serialize(): SerializedFlowMetrics {
+    serialize(): FlowStats {
         return {
             name: this.name,
             totalExecutionTime: this.totalExecutionTime,

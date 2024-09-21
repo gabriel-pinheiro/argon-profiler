@@ -1,33 +1,33 @@
 import {
     disableProfiling,
     enableProfiling,
-    runWithProfiling,
+    getExecutionMetrics,
     setFlowName,
 } from './flow-control';
 import { syncSleep, asyncSleep } from '../timing';
 
 const TOLERANCE = 5;
 
-describe('runWithProfiling', () => {
+describe('getExecutionMetrics', () => {
     describe('Profiling disabled', () => {
         beforeEach(() => {
             disableProfiling();
         });
 
         it('should return correct value with sync functions', async () => {
-            const { resultPromise } = await runWithProfiling(() => 42);
+            const { resultPromise } = await getExecutionMetrics(() => 42);
 
             expect(await resultPromise).toBe(42);
         });
 
         it('should return correct value with async functions', async () => {
-            const { resultPromise } = await runWithProfiling(async () => 42);
+            const { resultPromise } = await getExecutionMetrics(async () => 42);
 
             expect(await resultPromise).toBe(42);
         });
 
         it('should reject with sync throwing', async () => {
-            const { resultPromise } = await runWithProfiling(() => {
+            const { resultPromise } = await getExecutionMetrics(() => {
                 throw new Error('error');
             });
 
@@ -35,7 +35,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should reject with async rejections', async () => {
-            const { resultPromise } = await runWithProfiling(async () => {
+            const { resultPromise } = await getExecutionMetrics(async () => {
                 throw new Error('error');
             });
 
@@ -43,7 +43,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should not measure metrics with disabled profiling', async () => {
-            const metrics = await runWithProfiling(() => {
+            const metrics = await getExecutionMetrics(() => {
                 syncSleep(20);
                 return 42;
             });
@@ -54,7 +54,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should not return name with disabled profiling', async () => {
-            const metrics = await runWithProfiling(() => 42, {
+            const metrics = await getExecutionMetrics(() => 42, {
                 flowName: 'test',
             });
 
@@ -68,19 +68,19 @@ describe('runWithProfiling', () => {
         });
 
         it('should return correct value with sync functions', async () => {
-            const { resultPromise } = await runWithProfiling(() => 42);
+            const { resultPromise } = await getExecutionMetrics(() => 42);
 
             expect(await resultPromise).toBe(42);
         });
 
         it('should return correct value with async functions', async () => {
-            const { resultPromise } = await runWithProfiling(async () => 42);
+            const { resultPromise } = await getExecutionMetrics(async () => 42);
 
             expect(await resultPromise).toBe(42);
         });
 
         it('should return correct event loop time with async functions', async () => {
-            const metrics = await runWithProfiling(async () => {
+            const metrics = await getExecutionMetrics(async () => {
                 syncSleep(10);
                 await asyncSleep(20);
                 syncSleep(40);
@@ -97,7 +97,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should return correct event loop time with sync functions', async () => {
-            const metrics = await runWithProfiling(() => {
+            const metrics = await getExecutionMetrics(() => {
                 syncSleep(20);
                 return 42;
             });
@@ -110,7 +110,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should support macrotasks', async () => {
-            const metrics = await runWithProfiling(
+            const metrics = await getExecutionMetrics(
                 () =>
                     new Promise((r) => {
                         setImmediate(() => {
@@ -128,7 +128,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should support microtasks', async () => {
-            const metrics = await runWithProfiling(
+            const metrics = await getExecutionMetrics(
                 () =>
                     new Promise((r) => {
                         process.nextTick(() => {
@@ -146,7 +146,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should support sync throwing', async () => {
-            const metrics = await runWithProfiling(() => {
+            const metrics = await getExecutionMetrics(() => {
                 syncSleep(20);
                 throw new Error('error');
             });
@@ -159,7 +159,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should support async throwing', async () => {
-            const metrics = await runWithProfiling(async () => {
+            const metrics = await getExecutionMetrics(async () => {
                 syncSleep(10);
                 await asyncSleep(20);
                 syncSleep(40);
@@ -176,7 +176,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should support parallell profiling', async () => {
-            const metrics1Promise = runWithProfiling(
+            const metrics1Promise = getExecutionMetrics(
                 async () => {
                     await asyncSleep(10);
                     syncSleep(20);
@@ -187,7 +187,7 @@ describe('runWithProfiling', () => {
                 { flowName: 'metrics1' },
             );
 
-            const metrics2Promise = runWithProfiling(
+            const metrics2Promise = getExecutionMetrics(
                 async () => {
                     await asyncSleep(10);
                     syncSleep(20); // This will be queued and shouldn't affect the event loop time
@@ -215,13 +215,13 @@ describe('runWithProfiling', () => {
         });
 
         it('should return <unnamed flow> when name not provided', async () => {
-            const metrics = await runWithProfiling(() => 42);
+            const metrics = await getExecutionMetrics(() => 42);
 
             expect(metrics.flowName).toBe('<unnamed flow>');
         });
 
         it('should return correct name when provided', async () => {
-            const metrics = await runWithProfiling(() => 42, {
+            const metrics = await getExecutionMetrics(() => 42, {
                 flowName: 'test',
             });
 
@@ -229,7 +229,7 @@ describe('runWithProfiling', () => {
         });
 
         it('should return correct name when set later', async () => {
-            const metrics = await runWithProfiling(async () => {
+            const metrics = await getExecutionMetrics(async () => {
                 await asyncSleep(10);
                 setFlowName('test');
                 await asyncSleep(10);
@@ -243,7 +243,7 @@ describe('runWithProfiling', () => {
         });
 
         it('setFlowName should return true when in a profiled flow', async () => {
-            const metrics = await runWithProfiling(async () => {
+            const metrics = await getExecutionMetrics(async () => {
                 return setFlowName('test');
             });
 

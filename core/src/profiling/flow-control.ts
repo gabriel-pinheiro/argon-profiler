@@ -23,7 +23,7 @@ async function runWithoutProfiling<T>(
     }
 }
 
-export function runWithProfiling<T>(
+export function getExecutionMetrics<T>(
     fn: () => T | Promise<T>,
     options: ProfilingOptions = {},
 ): Promise<ContinuationMetrics<T>> {

@@ -2,18 +2,18 @@ import { ContinuationMetrics } from '../profiling/continuation-tracker';
 import {
     disableProfiling,
     enableProfiling,
-    runWithProfiling,
+    getExecutionMetrics,
 } from '../profiling/flow-control';
-import { FlowMetrics, SerializedFlowMetrics } from './flow-metrics';
+import { FlowMetrics, FlowStats } from './flow-metrics';
 
 const allMetrics: Map<string, FlowMetrics> = new Map();
 let isProfilingEnabled = false;
 
-export async function recordFlowMetrics<T>(
+export async function runWithProfiling<T>(
     flowName: string,
     fn: () => T | Promise<T>,
 ): Promise<T> {
-    const metrics = await runWithProfiling(fn, { flowName });
+    const metrics = await getExecutionMetrics(fn, { flowName });
     registerFlowExecution(metrics);
     return await metrics.resultPromise;
 }
@@ -24,7 +24,7 @@ export function beginProfiling() {
     isProfilingEnabled = true;
 }
 
-export function endProfiling(): SerializedFlowMetrics[] {
+export function endProfiling(): FlowStats[] {
     const flowMetrics = Array.from(allMetrics.values()).map((metrics) =>
         metrics.serialize(),
     );
