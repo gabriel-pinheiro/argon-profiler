@@ -4,4 +4,5 @@ export {
     runWithProfiling,
     enableProfiling,
     disableProfiling,
+    setFlowName,
 } from './flow-control';

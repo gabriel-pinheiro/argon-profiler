@@ -63,6 +63,16 @@ export function runWithProfiling<T>(
     });
 }
 
+export function setFlowName(flowName: string): boolean {
+    const tracker = als.getStore();
+    if (!tracker) {
+        return false;
+    }
+
+    tracker.flowName = flowName;
+    return true;
+}
+
 export function enableProfiling() {
     taskMetricsHook.enable();
     isProfilingEnabled = true;

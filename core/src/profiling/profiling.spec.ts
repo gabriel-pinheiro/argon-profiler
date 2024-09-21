@@ -2,6 +2,7 @@ import {
     disableProfiling,
     enableProfiling,
     runWithProfiling,
+    setFlowName,
 } from './flow-control';
 import { syncSleep, asyncSleep } from '../timing';
 
@@ -225,6 +226,29 @@ describe('runWithProfiling', () => {
             });
 
             expect(metrics.flowName).toBe('test');
+        });
+
+        it('should return correct name when set later', async () => {
+            const metrics = await runWithProfiling(async () => {
+                await asyncSleep(10);
+                setFlowName('test');
+                await asyncSleep(10);
+            });
+
+            expect(metrics.flowName).toBe('test');
+        });
+
+        it('setFlowName should return false when not in a profiled flow', () => {
+            expect(setFlowName('test')).toBe(false);
+        });
+
+        it('setFlowName should return true when in a profiled flow', async () => {
+            const metrics = await runWithProfiling(async () => {
+                return setFlowName('test');
+            });
+
+            expect(metrics.flowName).toBe('test');
+            expect(await metrics.resultPromise).toBe(true);
         });
     });
 });
