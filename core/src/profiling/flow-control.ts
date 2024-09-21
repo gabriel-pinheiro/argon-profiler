@@ -7,7 +7,7 @@ import { als } from './storage';
 import { taskMetricsHook } from './task-metrics-hook';
 
 export function runWithProfiling<T>(
-    fn: () => Promise<T>,
+    fn: () => T | Promise<T>,
 ): Promise<ContinuationMetrics<T>> {
     const tracker = new ContinuationTracker();
 
