@@ -1,0 +1,37 @@
+{
+  "name": "argon-profiler",
+  "version": "0.1.0",
+  "description": "Argon Profiler measures event loop usage by route in your application, helping you optimize performance by identifying bottlenecks in API endpoints, background jobs, and more",
+  "main": "lib/index.js",
+  "scripts": {
+    "prebuild": "rimraf lib",
+    "build": "tsc",
+    "test": "jest",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gabriel-pinheiro/argon-profiler.git"
+  },
+  "keywords": [
+    "profiler",
+    "event",
+    "loop",
+    "cpu",
+    "performance"
+  ],
+  "author": "Gabriel Pinheiro <gabrielctpinheiro@gmail.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/gabriel-pinheiro/argon-profiler/issues"
+  },
+  "homepage": "https://github.com/gabriel-pinheiro/argon-profiler#readme",
+  "devDependencies": {
+    "@types/jest": "^29.5.13",
+    "@types/node": "^22.5.5",
+    "jest": "^29.7.0",
+    "rimraf": "^6.0.1",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.6.2"
+  }
+}
