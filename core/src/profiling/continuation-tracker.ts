@@ -3,7 +3,7 @@ import { performance } from 'node:perf_hooks';
 export type ContinuationMetrics<T> = {
     totalEventLoopTime: number;
     totalExecutionTime: number;
-    result: T;
+    resultPromise: Promise<T>;
 };
 
 export class ContinuationTracker {
@@ -29,11 +29,11 @@ export class ContinuationTracker {
         this.totalEventLoopTime += performance.now() - this.taskStart;
     }
 
-    getMetrics<T>(result: T): ContinuationMetrics<T> {
+    getMetrics<T>(resultPromise: Promise<T>): ContinuationMetrics<T> {
         return {
             totalEventLoopTime: this.totalEventLoopTime,
             totalExecutionTime: this.totalExecutionTime,
-            result,
+            resultPromise,
         };
     }
 }
