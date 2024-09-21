@@ -36,4 +36,14 @@ export class ContinuationTracker {
             resultPromise,
         };
     }
+
+    static getEmptyMetrics<T>(
+        resultPromise: Promise<T>,
+    ): ContinuationMetrics<T> {
+        return {
+            totalEventLoopTime: 0,
+            totalExecutionTime: 0,
+            resultPromise,
+        };
+    }
 }

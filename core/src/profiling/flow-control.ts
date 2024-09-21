@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { releaseEventLoop } from '../timing';
 import {
     ContinuationMetrics,
@@ -6,9 +7,26 @@ import {
 import { als } from './storage';
 import { taskMetricsHook } from './task-metrics-hook';
 
+let isProfilingEnabled = false;
+
+async function runWithoutProfiling<T>(
+    fn: () => T | Promise<T>,
+): Promise<ContinuationMetrics<T>> {
+    try {
+        const result = await fn();
+        return ContinuationTracker.getEmptyMetrics(Promise.resolve(result));
+    } catch (e) {
+        return ContinuationTracker.getEmptyMetrics(Promise.reject(e));
+    }
+}
+
 export function runWithProfiling<T>(
     fn: () => T | Promise<T>,
 ): Promise<ContinuationMetrics<T>> {
+    if (!isProfilingEnabled) {
+        return runWithoutProfiling(fn);
+    }
+
     const tracker = new ContinuationTracker();
 
     return als.run(tracker, async () => {
@@ -43,8 +61,11 @@ export function runWithProfiling<T>(
 
 export function enableProfiling() {
     taskMetricsHook.enable();
+    isProfilingEnabled = true;
 }
 
 export function disableProfiling() {
     taskMetricsHook.disable();
+    als.disable();
+    isProfilingEnabled = false;
 }
