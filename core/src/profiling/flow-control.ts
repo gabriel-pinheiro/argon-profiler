@@ -6,6 +6,10 @@ import {
 import { als } from './storage';
 import { taskMetricsHook } from './task-metrics-hook';
 
+export type ProfilingOptions = {
+    flowName?: string;
+};
+
 let isProfilingEnabled = false;
 
 async function runWithoutProfiling<T>(
@@ -21,12 +25,13 @@ async function runWithoutProfiling<T>(
 
 export function runWithProfiling<T>(
     fn: () => T | Promise<T>,
+    options: ProfilingOptions = {},
 ): Promise<ContinuationMetrics<T>> {
     if (!isProfilingEnabled) {
         return runWithoutProfiling(fn);
     }
 
-    const tracker = new ContinuationTracker();
+    const tracker = new ContinuationTracker(options.flowName);
 
     return als.run(tracker, async () => {
         // Releasing the event loop because the "start" hook for the

@@ -51,6 +51,14 @@ describe('runWithProfiling', () => {
             expect(metrics.totalEventLoopTime).toBe(0);
             expect(await metrics.resultPromise).toBe(42);
         });
+
+        it('should not return name with disabled profiling', async () => {
+            const metrics = await runWithProfiling(() => 42, {
+                flowName: 'test',
+            });
+
+            expect(metrics.flowName).toBe('<profiling is disabled>');
+        });
     });
 
     describe('Profiling enabled', () => {
@@ -167,21 +175,27 @@ describe('runWithProfiling', () => {
         });
 
         it('should support parallell profiling', async () => {
-            const metrics1Promise = runWithProfiling(async () => {
-                await asyncSleep(10);
-                syncSleep(20);
-                await asyncSleep(50);
-                syncSleep(30);
-                return 41;
-            });
+            const metrics1Promise = runWithProfiling(
+                async () => {
+                    await asyncSleep(10);
+                    syncSleep(20);
+                    await asyncSleep(50);
+                    syncSleep(30);
+                    return 41;
+                },
+                { flowName: 'metrics1' },
+            );
 
-            const metrics2Promise = runWithProfiling(async () => {
-                await asyncSleep(10);
-                syncSleep(20); // This will be queued and shouldn't affect the event loop time
-                await asyncSleep(100);
-                syncSleep(60);
-                return 42;
-            });
+            const metrics2Promise = runWithProfiling(
+                async () => {
+                    await asyncSleep(10);
+                    syncSleep(20); // This will be queued and shouldn't affect the event loop time
+                    await asyncSleep(100);
+                    syncSleep(60);
+                    return 42;
+                },
+                { flowName: 'metrics2' },
+            );
 
             const [metrics1, metrics2] = await Promise.all([
                 metrics1Promise,
@@ -190,11 +204,27 @@ describe('runWithProfiling', () => {
 
             expect(metrics1.totalEventLoopTime).toBeGreaterThan(50 - TOLERANCE);
             expect(metrics1.totalEventLoopTime).toBeLessThan(50 + TOLERANCE);
+            expect(metrics1.flowName).toBe('metrics1');
             expect(await metrics1.resultPromise).toBe(41);
 
             expect(metrics2.totalEventLoopTime).toBeGreaterThan(80 - TOLERANCE);
             expect(metrics2.totalEventLoopTime).toBeLessThan(80 + TOLERANCE);
+            expect(metrics2.flowName).toBe('metrics2');
             expect(await metrics2.resultPromise).toBe(42);
+        });
+
+        it('should return <unnamed flow> when name not provided', async () => {
+            const metrics = await runWithProfiling(() => 42);
+
+            expect(metrics.flowName).toBe('<unnamed flow>');
+        });
+
+        it('should return correct name when provided', async () => {
+            const metrics = await runWithProfiling(() => 42, {
+                flowName: 'test',
+            });
+
+            expect(metrics.flowName).toBe('test');
         });
     });
 });

@@ -1,6 +1,7 @@
 import { performance } from 'node:perf_hooks';
 
 export type ContinuationMetrics<T> = {
+    flowName: string;
     totalEventLoopTime: number;
     totalExecutionTime: number;
     resultPromise: Promise<T>;
@@ -12,6 +13,8 @@ export class ContinuationTracker {
 
     private flowStart = 0;
     private taskStart = 0;
+
+    constructor(public flowName?: string) {}
 
     markFlowStart() {
         this.flowStart = performance.now();
@@ -31,6 +34,7 @@ export class ContinuationTracker {
 
     getMetrics<T>(resultPromise: Promise<T>): ContinuationMetrics<T> {
         return {
+            flowName: this.flowName ?? '<unnamed flow>',
             totalEventLoopTime: this.totalEventLoopTime,
             totalExecutionTime: this.totalExecutionTime,
             resultPromise,
@@ -41,6 +45,7 @@ export class ContinuationTracker {
         resultPromise: Promise<T>,
     ): ContinuationMetrics<T> {
         return {
+            flowName: '<profiling is disabled>',
             totalEventLoopTime: 0,
             totalExecutionTime: 0,
             resultPromise,
