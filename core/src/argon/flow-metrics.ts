@@ -8,6 +8,14 @@ export type FlowStats = {
 
     averageExecutionTime: number;
     averageEventLoopTime: number;
+    eventLoopUsage: number;
+};
+
+export type Statistics = {
+    globalEventLoopTime: number;
+    untrackedEventLoopTime: number;
+    untrackedEventLoopUsage: number;
+    flowStats: FlowStats[];
 };
 
 export class FlowMetrics {
@@ -23,7 +31,7 @@ export class FlowMetrics {
         this.executions++;
     }
 
-    serialize(): FlowStats {
+    serialize(globalEventLoopTime: number): FlowStats {
         return {
             name: this.name,
             totalExecutionTime: this.totalExecutionTime,
@@ -32,6 +40,7 @@ export class FlowMetrics {
 
             averageExecutionTime: this.totalExecutionTime / this.executions,
             averageEventLoopTime: this.totalEventLoopTime / this.executions,
+            eventLoopUsage: this.totalEventLoopTime / globalEventLoopTime,
         };
     }
 }

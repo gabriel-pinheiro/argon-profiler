@@ -1,12 +1,15 @@
+import { performance } from 'perf_hooks';
 import { ContinuationMetrics } from '../profiling/continuation-tracker';
 import {
     disableProfiling,
     enableProfiling,
     getExecutionMetrics,
 } from '../profiling/flow-control';
-import { FlowMetrics, FlowStats } from './flow-metrics';
+import { FlowMetrics, Statistics } from './flow-metrics';
 
 const allMetrics: Map<string, FlowMetrics> = new Map();
+let eventLoopUsageStart = 0;
+let eventLoopUsageEnd = 0;
 let isProfilingEnabled = false;
 
 export async function runWithProfiling<T>(
@@ -22,17 +25,42 @@ export function beginProfiling() {
     enableProfiling();
     allMetrics.clear();
     isProfilingEnabled = true;
+    eventLoopUsageStart = performance.eventLoopUtilization().active;
 }
 
-export function endProfiling(): FlowStats[] {
-    const flowMetrics = Array.from(allMetrics.values()).map((metrics) =>
-        metrics.serialize(),
-    );
-
+export function endProfiling() {
     disableProfiling();
-    allMetrics.clear();
     isProfilingEnabled = false;
-    return flowMetrics;
+    eventLoopUsageEnd = performance.eventLoopUtilization().active;
+}
+
+export function getStatistics(): Statistics {
+    const globalEventLoopTime = getGlobalEventLoopTime();
+    const flowMetrics = Array.from(allMetrics.values()).map((metrics) =>
+        metrics.serialize(globalEventLoopTime),
+    );
+    const trackedEventLoopTime = flowMetrics.reduce(
+        (sum, stats) => sum + stats.totalEventLoopTime,
+        0,
+    );
+    const untrackedEventLoopTime = globalEventLoopTime - trackedEventLoopTime;
+    const untrackedEventLoopUsage =
+        untrackedEventLoopTime / globalEventLoopTime;
+
+    return {
+        globalEventLoopTime,
+        untrackedEventLoopTime,
+        untrackedEventLoopUsage,
+        flowStats: flowMetrics,
+    };
+}
+
+function getGlobalEventLoopTime() {
+    if (!isProfilingEnabled) {
+        return eventLoopUsageEnd - eventLoopUsageStart;
+    }
+
+    return performance.eventLoopUtilization().active - eventLoopUsageStart;
 }
 
 function registerFlowExecution(metrics: ContinuationMetrics<unknown>) {

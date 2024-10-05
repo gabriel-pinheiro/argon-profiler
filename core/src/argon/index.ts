@@ -2,6 +2,7 @@ export {
     runWithProfiling,
     beginProfiling,
     endProfiling,
+    getStatistics,
 } from './argon-profiler';
 export { setFlowName } from '../profiling/flow-control';
-export { FlowStats } from './flow-metrics';
+export { FlowStats, Statistics } from './flow-metrics';
